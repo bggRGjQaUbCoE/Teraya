@@ -91,7 +91,7 @@ class Board @JvmOverloads constructor(
                 val cell = gridTextArrays[i - x * 3][j - y * 3]
                 cell.setTag(R.id.row, i)
                 cell.setTag(R.id.column, j)
-                cell.setTag(R.id.isEnable, false)
+                cell.setTag(R.id.isEnable, true)
                 cell.setTextColor(Color.parseColor(mDefaultTextColor))
                 cell.setBackgroundColor(Color.parseColor(mDefaultBgColor))
                 cell.setOnClickListener(this)
@@ -107,8 +107,9 @@ class Board @JvmOverloads constructor(
 
     override fun onClick(v: View) {
         mCurrentCell = v as TextView
-        if ((mCurrentCell.getTag(R.id.isEnable) as Boolean))
-            lightUpCellByRowAndColumn(v.getTag(R.id.row) as Int, v.getTag(R.id.column) as Int)
+        check(v.getTag(R.id.row) as Int, v.getTag(R.id.column) as Int)
+        if ((mCurrentCell.getTag(R.id.isEnable) as Boolean) && !(mCurrentCell.getTag(R.id.isDone) as Boolean))
+            lightRowAndColumn(v.getTag(R.id.row) as Int, v.getTag(R.id.column) as Int)
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -133,9 +134,22 @@ class Board @JvmOverloads constructor(
             else -> throw IllegalArgumentException("invalid column: $column")
         }
 
+        if (mCellArray[rowStart][columnStart].getTag(R.id.isFinish) as Boolean) {
+            for (i in 0..8) {
+                for (j in 0..8) {
+                    if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean)) {
+                        mCellArray[i][j].setTag(R.id.isEnable, true)
+                        mCellArray[i][j].foreground = null
+                    }
+                }
+            }
+            return
+        }
+
         for (i in 0..8) {
             for (j in 0..8) {
-                mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
+                if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean))
+                    mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
                 if (i in rowStart..rowStart + 2 && j in columnStart..columnStart + 2) { // 当前区域
                     mCellArray[i][j].foreground = null
                     mCellArray[i][j].setTag(R.id.isEnable, true)
@@ -153,10 +167,9 @@ class Board @JvmOverloads constructor(
             return
         val row = mCurrentCell.getTag(R.id.row) as Int
         val column = mCurrentCell.getTag(R.id.column) as Int
-        if (mCurrentCell.getTag(R.id.isEnable) as Boolean) {
+        if (!(mCurrentCell.getTag(R.id.isDone) as Boolean)) {
             mCellArray[row][column]
                 .setBackgroundColor(Color.parseColor(mLightTextColor))
-            revert(row, column)
             mCurrentCell.text = str
             mCurrentCell.paint.isFakeBoldText = true
             mCurrentCell.setTextColor(
@@ -164,12 +177,12 @@ class Board @JvmOverloads constructor(
                 else Color.BLUE
             )
             mCurrentCell.setTag(R.id.isDone, true)
-            if (checkGirdFinish(row, column)) {
-                // TO DO: change GRID
-                //mGameOverCallBack?.gameOver()
-            } else {
-                mGameOverCallBack?.changeView(str)
+            val checkGrid = checkGirdFinish(row, column)
+            revert(row, column)
+            if (checkGrid) {
+                //  checkBoard      mGameOverCallBack?.gameOver()
             }
+            mGameOverCallBack?.changeView(str)
         }
     }
 
@@ -184,6 +197,7 @@ class Board @JvmOverloads constructor(
                 cell.text = " "
                 cell.setTag(R.id.isEnable, true)
                 cell.setTag(R.id.isDone, false)
+                cell.setTag(R.id.isFinish, false)
                 cell.setTextColor(Color.parseColor(mDisableTextColor))
                 //}
             }
@@ -191,13 +205,13 @@ class Board @JvmOverloads constructor(
     }
 
     private fun checkGirdFinish(rawRow: Int, rawColumn: Int): Boolean {
-        val rowStart = when (rawRow + 1) {
+        var rowStart = when (rawRow + 1) {
             in 1..3 -> 1 - 1
             in 4..6 -> 4 - 1
             in 7..9 -> 7 - 1
             else -> throw IllegalArgumentException("invalid rawRow: $rawRow")
         }
-        val columnStart = when (rawColumn + 1) {
+        var columnStart = when (rawColumn + 1) {
             in 1..3 -> 1 - 1
             in 4..6 -> 4 - 1
             in 7..9 -> 7 - 1
@@ -209,6 +223,23 @@ class Board @JvmOverloads constructor(
         boad.add("${mCellArray[rowStart + 2][columnStart].text}${mCellArray[rowStart + 2][columnStart + 1].text}${mCellArray[rowStart + 2][columnStart + 2].text}")
 
         val isFinish: String = isFinish(boad)
+
+        if (isFinish == "X" || isFinish == "O") {
+            for (i in rowStart..rowStart + 2) {
+                for (j in columnStart..columnStart + 2) {
+                    mCellArray[i][j].apply {
+                        setTag(R.id.isFinish, true)
+                        setTag(R.id.isEnable, false)
+                        setBackgroundColor(
+                            if (isFinish == "X" && this.text.toString() == "X") Color.RED
+                            else if (isFinish == "O" && this.text.toString() == "O") Color.BLUE
+                            else Color.WHITE // TO DO
+                        )
+                    }
+                }
+            }
+        }
+        Log.d("dfgdfgdfgdddd", "isFinish: $isFinish")
         return !(isFinish != "X" && isFinish != "O")
     }
 
@@ -294,54 +325,6 @@ class Board @JvmOverloads constructor(
         return result
     }
 
-    private fun lightUpCellByRowAndColumn(row: Int, column: Int) {
-        // val lightText = !TextUtils.isEmpty(mCellArray[row][column].text.toString())
-        //  if (lightText) {
-        //lightSameNumber(row, column, false)
-        //} else {
-        lightRowAndColumn(row, column)
-        // }
-    }
-
-
-    private fun lightSameNumber(row: Int, column: Int, isError: Boolean) {
-        val value = mCellArray[row][column].text.toString()
-        for (i in 0..8) {
-            for (j in 0..8) {
-                if (value == mCellArray[i][j].text.toString()) {
-                    //change number color
-                    if (i == row && column == j) {
-                        //If it is wrong, change the text color without changing the background.
-                        if (isError || mCellArray[i][j].currentTextColor == Color.parseColor(
-                                mErrorTextColor
-                            )
-                        ) {
-                            mCellArray[i][j].setBackgroundColor(Color.parseColor(mErrorTextColor))
-                            mCellArray[i][j].setTextColor(Color.parseColor(mLightTextColor))
-                        } else {
-                            mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightBgColor))
-                            mCellArray[i][j].setTextColor(Color.parseColor(mLightTextColor))
-                        }
-                    } else {
-                        if (mCellArray[i][j].currentTextColor == Color.parseColor(mErrorTextColor)) {
-                            mCellArray[i][j].setTextColor(Color.parseColor(mErrorTextColor))
-                        } else {
-                            mCellArray[i][j].setTextColor(Color.parseColor(mLightTextColor))
-                        }
-                        mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightBgColor))
-                    }
-                } else {
-                    if (mCellArray[i][j].getTag(R.id.isEnable) as Boolean) {
-                        mCellArray[i][j].setTextColor(Color.parseColor(mDisableTextColor))
-                    } else {
-                        mCellArray[i][j].setTextColor(Color.parseColor(mDefaultTextColor))
-                    }
-                    mCellArray[i][j].setBackgroundColor(Color.parseColor(mDefaultBgColor))
-                }
-            }
-        }
-    }
-
     @SuppressLint("RestrictedApi", "UseCompatLoadingForDrawables")
     private fun lightRowAndColumn(rawRow: Int, rawColumn: Int) {
         val row = with((rawRow + 1) % 3) {
@@ -366,11 +349,16 @@ class Board @JvmOverloads constructor(
 
         for (i in 0..8) {
             for (j in 0..8) {
-                mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
+                if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean))
+                    mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
                 if (i in rowStart..rowStart + 2 && j in columnStart..columnStart + 2) {// 下一步的区域
-                    mCellArray[i][j].foreground =
-                        if (mCellArray[i][j].getTag(R.id.isEnable) as Boolean) context.getDrawable(R.drawable.cell_cv)
-                        else context.getDrawable(R.drawable.cell_cv_cv)
+                    if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean)) {
+                        mCellArray[i][j].foreground =
+                            if (mCellArray[i][j].getTag(R.id.isEnable) as Boolean) context.getDrawable(
+                                R.drawable.cell_cv
+                            )
+                            else context.getDrawable(R.drawable.cell_cv_cv)
+                    }
                 } else {
                     mCellArray[i][j].foreground =
                         if (mCellArray[i][j].getTag(R.id.isEnable) as Boolean) null
@@ -387,9 +375,21 @@ class Board @JvmOverloads constructor(
         )
     }
 
+    fun check(row: Int, column: Int) {
+        val str = """
+            row: $row ,, column: $column
+            text: ${mCellArray[row][column].text}
+            isEnable: ${mCellArray[row][column].getTag(R.id.isEnable)}
+            isDone: ${mCellArray[row][column].getTag(R.id.isDone)}
+            isFinish: ${mCellArray[row][column].getTag(R.id.isFinish)}
+        """.trimIndent()
+        mGameOverCallBack?.check(str)
+    }
+
     interface GameOverCallBack {
         fun gameOver()
         fun changeView(str: String)
+        fun check(str: String)
     }
 
 }

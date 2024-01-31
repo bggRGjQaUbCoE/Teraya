@@ -42,6 +42,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            override fun check(str: String) {
+                binding.info.text = str
+            }
+
         })
         binding.board.loadMap()
 
