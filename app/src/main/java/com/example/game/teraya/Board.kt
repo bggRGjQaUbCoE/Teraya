@@ -21,10 +21,8 @@ class Board @JvmOverloads constructor(
     private val mGridArray: MutableList<List<Grid>> = ArrayList()
     private lateinit var mCellArray: MutableList<List<TextView>>
     private lateinit var mCurrentCell: TextView
-    private val mErrorTextColor = "#ff0000"
     private val mLightTextColor = "#ffffff"
     private val mDefaultTextColor = "#000000"
-    private val mLightBgColor = "#607d8b"
     private val mDefaultBgColor = "#ffffff"
     private val mDisableTextColor = "#e2e2e2"
     private var mGameOverCallBack: GameOverCallBack? = null
@@ -92,6 +90,7 @@ class Board @JvmOverloads constructor(
                 cell.setTag(R.id.row, i)
                 cell.setTag(R.id.column, j)
                 cell.setTag(R.id.isEnable, true)
+                cell.setTag(R.id.teraya, " ")
                 cell.setTextColor(Color.parseColor(mDefaultTextColor))
                 cell.setBackgroundColor(Color.parseColor(mDefaultBgColor))
                 cell.setOnClickListener(this)
@@ -179,52 +178,80 @@ class Board @JvmOverloads constructor(
             mCurrentCell.setTag(R.id.isDone, true)
             val checkGrid = checkGirdFinish(row, column)
             revert(row, column)
-            if (checkGrid) {
-                //  checkBoard      mGameOverCallBack?.gameOver()
-            }
             mGameOverCallBack?.changeView(str)
+            if (checkGrid) {
+                checkBoardFinish()
+            }
+        }
+    }
+
+    private fun checkBoardFinish() {
+        val board = ArrayList<String>()
+        board.add(
+            "${mCellArray[0][0].getTag(R.id.teraya)}${mCellArray[0][3].getTag(R.id.teraya)}${
+                mCellArray[0][6].getTag(
+                    R.id.teraya
+                )
+            }"
+        )
+        board.add(
+            "${mCellArray[3][0].getTag(R.id.teraya)}${mCellArray[3][3].getTag(R.id.teraya)}${
+                mCellArray[3][6].getTag(
+                    R.id.teraya
+                )
+            }"
+        )
+        board.add(
+            "${mCellArray[6][0].getTag(R.id.teraya)}${mCellArray[6][3].getTag(R.id.teraya)}${
+                mCellArray[6][6].getTag(
+                    R.id.teraya
+                )
+            }"
+        )
+
+        val isFinish: String = isFinish(board)
+        if (isFinish == "X" || isFinish == "O") {
+            mGameOverCallBack?.gameOver(isFinish)
         }
     }
 
     fun loadMap() {
-        //if (TextUtils.isEmpty(map)) return
         for (i in mCellArray.indices) {
             val array = mCellArray[i]
             for (j in array.indices) {
                 val cell = array[j]
-                // val s = map.substring(9 * i + j, 9 * i + j + 1)
-                //  if ("0" = s) {
                 cell.text = " "
                 cell.setTag(R.id.isEnable, true)
                 cell.setTag(R.id.isDone, false)
                 cell.setTag(R.id.isFinish, false)
+                cell.setTag(R.id.teraya, " ")
                 cell.setTextColor(Color.parseColor(mDisableTextColor))
-                //}
             }
         }
     }
 
     private fun checkGirdFinish(rawRow: Int, rawColumn: Int): Boolean {
-        var rowStart = when (rawRow + 1) {
+        val rowStart = when (rawRow + 1) {
             in 1..3 -> 1 - 1
             in 4..6 -> 4 - 1
             in 7..9 -> 7 - 1
             else -> throw IllegalArgumentException("invalid rawRow: $rawRow")
         }
-        var columnStart = when (rawColumn + 1) {
+        val columnStart = when (rawColumn + 1) {
             in 1..3 -> 1 - 1
             in 4..6 -> 4 - 1
             in 7..9 -> 7 - 1
             else -> throw IllegalArgumentException("invalid rawColumn: $rawColumn")
         }
-        val boad = ArrayList<String>()
-        boad.add("${mCellArray[rowStart][columnStart].text}${mCellArray[rowStart][columnStart + 1].text}${mCellArray[rowStart][columnStart + 2].text}")
-        boad.add("${mCellArray[rowStart + 1][columnStart].text}${mCellArray[rowStart + 1][columnStart + 1].text}${mCellArray[rowStart + 1][columnStart + 2].text}")
-        boad.add("${mCellArray[rowStart + 2][columnStart].text}${mCellArray[rowStart + 2][columnStart + 1].text}${mCellArray[rowStart + 2][columnStart + 2].text}")
+        val grid = ArrayList<String>()
+        grid.add("${mCellArray[rowStart][columnStart].text}${mCellArray[rowStart][columnStart + 1].text}${mCellArray[rowStart][columnStart + 2].text}")
+        grid.add("${mCellArray[rowStart + 1][columnStart].text}${mCellArray[rowStart + 1][columnStart + 1].text}${mCellArray[rowStart + 1][columnStart + 2].text}")
+        grid.add("${mCellArray[rowStart + 2][columnStart].text}${mCellArray[rowStart + 2][columnStart + 1].text}${mCellArray[rowStart + 2][columnStart + 2].text}")
 
-        val isFinish: String = isFinish(boad)
+        val isFinish: String = isFinish(grid)
 
         if (isFinish == "X" || isFinish == "O") {
+            mCellArray[rowStart][columnStart].setTag(R.id.teraya, if (isFinish == "X") "X" else "O")
             for (i in rowStart..rowStart + 2) {
                 for (j in columnStart..columnStart + 2) {
                     mCellArray[i][j].apply {
@@ -387,7 +414,7 @@ class Board @JvmOverloads constructor(
     }
 
     interface GameOverCallBack {
-        fun gameOver()
+        fun gameOver(str: String)
         fun changeView(str: String)
         fun check(str: String)
     }

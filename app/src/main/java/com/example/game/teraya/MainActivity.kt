@@ -2,9 +2,9 @@ package com.example.game.teraya
 
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.game.teraya.databinding.ActivityMainBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,20 +15,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.board.setGameOverCallBack(object : Board.GameOverCallBack {
-            override fun gameOver() {
-                AlertDialog.Builder(this@MainActivity).setTitle("awesome!")
-                    .setMessage("Congratulations，you solve the Sudoku!")
-                    .setNegativeButton("exit") { dialog, which ->
-                        dialog.dismiss()
-                        finish()
-                    }
-                    .setPositiveButton("Next") { dialog, which ->
-                        dialog.dismiss()
+        binding.info.visibility =
+            if (BuildConfig.DEBUG) View.VISIBLE
+            else View.GONE
 
-                    }
-                    .create()
-                    .show()
+        binding.board.setGameOverCallBack(object : Board.GameOverCallBack {
+            override fun gameOver(str: String) {
+                MaterialAlertDialogBuilder(this@MainActivity).apply {
+                    setTitle("Finish")
+                    setMessage("winner is $str")
+                    setPositiveButton("close", null)
+                    show()
+                }
 
             }
 

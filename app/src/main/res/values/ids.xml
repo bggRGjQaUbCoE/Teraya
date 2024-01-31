@@ -5,4 +5,5 @@
     <item name="isEnable" type="id" />
     <item name="isDone" type="id" />
     <item name="isFinish" type="id" />
+    <item name="teraya" type="id" />
 </resources>
