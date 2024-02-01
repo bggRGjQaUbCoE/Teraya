@@ -22,9 +22,14 @@ class MainActivity : AppCompatActivity() {
         binding.board.setGameOverCallBack(object : Board.GameOverCallBack {
             override fun gameOver(str: String) {
                 MaterialAlertDialogBuilder(this@MainActivity).apply {
-                    setTitle("Finish")
+                    setTitle("Finished")
                     setMessage("winner is $str")
                     setPositiveButton("close", null)
+                    setNeutralButton("one more round") { _, _ ->
+                        binding.board.loadMap()
+                        binding.playerO.visibility = View.VISIBLE
+                        binding.playerX.visibility = View.VISIBLE
+                    }
                     show()
                 }
 

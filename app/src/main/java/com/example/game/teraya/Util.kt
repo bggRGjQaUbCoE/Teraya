@@ -30,7 +30,7 @@ object Util {
         // 位层for循环结束后左撇和右捺的和计算完毕，可以做判断了。
         if (left == 'X'.code * length || right == 'X'.code * length) return "X"
         if (left == 'O'.code * length || right == 'O'.code * length) return "O"
-        return if (includeempty == true) "Pending" else "Draw"
+        return if (includeempty) "Pending" else "Draw"
     }
 
 }

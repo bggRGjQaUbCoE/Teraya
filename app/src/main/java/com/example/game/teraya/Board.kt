@@ -139,6 +139,8 @@ class Board @JvmOverloads constructor(
                     if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean)) {
                         mCellArray[i][j].setTag(R.id.isEnable, true)
                         mCellArray[i][j].foreground = null
+                    } else {
+                        mCellArray[i][j].foreground = context.getDrawable(R.drawable.cell_cv)
                     }
                 }
             }
@@ -226,6 +228,8 @@ class Board @JvmOverloads constructor(
                 cell.setTag(R.id.isFinish, false)
                 cell.setTag(R.id.teraya, " ")
                 cell.setTextColor(Color.parseColor(mDisableTextColor))
+                cell.setBackgroundColor(Color.WHITE)
+                cell.foreground = null
             }
         }
     }
@@ -402,7 +406,7 @@ class Board @JvmOverloads constructor(
         )
     }
 
-    fun check(row: Int, column: Int) {
+    private fun check(row: Int, column: Int) {
         val str = """
             row: $row ,, column: $column
             text: ${mCellArray[row][column].text}
