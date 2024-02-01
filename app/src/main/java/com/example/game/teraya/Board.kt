@@ -26,6 +26,8 @@ class Board @JvmOverloads constructor(
     private val mDefaultBgColor = "#ffffff"
     private val mDisableTextColor = "#e2e2e2"
     private var mGameOverCallBack: GameOverCallBack? = null
+    private var inputRow = -1
+    private var inputColumn = -1
 
     init {
         init(context, attrs, defStyleAttr)
@@ -107,8 +109,11 @@ class Board @JvmOverloads constructor(
     override fun onClick(v: View) {
         mCurrentCell = v as TextView
         check(v.getTag(R.id.row) as Int, v.getTag(R.id.column) as Int)
-        if ((mCurrentCell.getTag(R.id.isEnable) as Boolean) && !(mCurrentCell.getTag(R.id.isDone) as Boolean))
-            lightRowAndColumn(v.getTag(R.id.row) as Int, v.getTag(R.id.column) as Int)
+        if ((mCurrentCell.getTag(R.id.isEnable) as Boolean) && !(mCurrentCell.getTag(R.id.isDone) as Boolean)) {
+            inputRow = v.getTag(R.id.row) as Int
+            inputColumn = v.getTag(R.id.column) as Int
+            lightRowAndColumn(inputRow, inputColumn)
+        }
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -166,20 +171,21 @@ class Board @JvmOverloads constructor(
     fun inputText(str: String) {
         if (!::mCurrentCell.isInitialized)
             return
-        val row = mCurrentCell.getTag(R.id.row) as Int
-        val column = mCurrentCell.getTag(R.id.column) as Int
-        if (!(mCurrentCell.getTag(R.id.isDone) as Boolean)) {
-            mCellArray[row][column]
+        if ((mCellArray[inputRow][inputColumn].getTag(R.id.isEnable) as Boolean)
+            && !(mCellArray[inputRow][inputColumn].getTag(R.id.isDone) as Boolean)
+            && !(mCellArray[inputRow][inputColumn].getTag(R.id.isFinish) as Boolean)
+        ) {
+            mCellArray[inputRow][inputColumn]
                 .setBackgroundColor(Color.parseColor(mLightTextColor))
-            mCurrentCell.text = str
-            mCurrentCell.paint.isFakeBoldText = true
-            mCurrentCell.setTextColor(
+            mCellArray[inputRow][inputColumn].text = str
+            mCellArray[inputRow][inputColumn].paint.isFakeBoldText = true
+            mCellArray[inputRow][inputColumn].setTextColor(
                 if (str == "X") Color.RED
                 else Color.BLUE
             )
-            mCurrentCell.setTag(R.id.isDone, true)
-            val checkGrid = checkGirdFinish(row, column)
-            revert(row, column)
+            mCellArray[inputRow][inputColumn].setTag(R.id.isDone, true)
+            val checkGrid = checkGirdFinish(inputRow, inputColumn)
+            revert(inputRow, inputColumn)
             mGameOverCallBack?.changeView(str)
             if (checkGrid) {
                 checkBoardFinish()
