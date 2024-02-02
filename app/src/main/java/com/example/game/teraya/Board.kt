@@ -299,11 +299,7 @@ class Board @JvmOverloads constructor(
                     mCellArray[i][j].setBackgroundColor(context.getColor(R.color.wb))
                 if (i in rowStart..rowStart + 2 && j in columnStart..columnStart + 2) {// 下一步的区域
                     if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean)) {
-                        mCellArray[i][j].foreground =
-                            if (mCellArray[i][j].getTag(R.id.isEnable) as Boolean) context.getDrawable(
-                                R.drawable.cell_cv
-                            )
-                            else context.getDrawable(R.drawable.cell_cv_cv)
+                        mCellArray[i][j].foreground = context.getDrawable(R.drawable.cell_cv_cv)
                     }
                 } else {
                     mCellArray[i][j].foreground =
