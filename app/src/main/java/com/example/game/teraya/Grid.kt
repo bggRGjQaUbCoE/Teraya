@@ -1,19 +1,17 @@
 package com.example.game.teraya
 
 import android.content.Context
-import android.graphics.Color
 import android.util.AttributeSet
 import android.view.Gravity
 import android.widget.RelativeLayout
 import android.widget.TextView
-import com.example.game.teraya.DensityUtils.Companion.dp2px
 
 class Grid @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : RelativeLayout(context, attrs, defStyleAttr) {
-    private val TEXT_SIZE = dp2px(getContext(), 40f)
+    private val TEXT_SIZE = 40.dp
     private lateinit var mTextArrays: MutableList<List<TextView>>
 
     init {
@@ -21,7 +19,7 @@ class Grid @JvmOverloads constructor(
     }
 
     private fun init(context: Context) {
-        val padding = dp2px(context, 1f)
+        val padding = 1.dp
         setPadding(padding, padding, padding, padding)
         mTextArrays = ArrayList()
         for (i in 0..2) {
@@ -30,7 +28,7 @@ class Grid @JvmOverloads constructor(
                 val textView = TextView(context)
                 textView.width = TEXT_SIZE
                 textView.height = TEXT_SIZE
-                textView.setBackgroundColor(Color.WHITE)
+                textView.setBackgroundColor(context.getColor(R.color.wb))
                 textView.id = generateViewId()
                 textView.gravity = Gravity.CENTER
                 //                textView.setText(String.format("(%1$d,%2$d)", i, j));
@@ -47,12 +45,12 @@ class Grid @JvmOverloads constructor(
 
                             1 -> {
                                 params.addRule(BELOW, mTextArrays[0][0].id)
-                                params.topMargin = dp2px(context, 1f)
+                                params.topMargin = 1.dp
                             }
 
                             else -> {
                                 params.addRule(BELOW, mTextArrays[1][0].id)
-                                params.topMargin = dp2px(context, 1f)
+                                params.topMargin = 1.dp
                             }
                         }
                     }
@@ -60,23 +58,23 @@ class Grid @JvmOverloads constructor(
                     1 -> {
                         params.addRule(RIGHT_OF, viewList[j - 1].id)
                         params.addRule(ALIGN_TOP, viewList[j - 1].id)
-                        params.leftMargin = dp2px(context, 1f)
+                        params.leftMargin = 1.dp
                     }
 
                     else -> {
                         params.addRule(RIGHT_OF, viewList[j - 1].id)
                         params.addRule(ALIGN_TOP, viewList[j - 1].id)
-                        params.leftMargin = dp2px(context, 1f)
+                        params.leftMargin = 1.dp
                     }
                 }
             }
             mTextArrays.add(viewList)
         }
-        setBackgroundColor(Color.BLACK)
+        setBackgroundColor(context.getColor(R.color.bw))
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val size = dp2px(context, (6 + 3 * 40).toFloat())
+        val size = (6 + 3 * 40).dp
         super.onMeasure(size, size)
         //        super.onMeasure(widthMeasureSpec,heightMeasureSpec);
     }

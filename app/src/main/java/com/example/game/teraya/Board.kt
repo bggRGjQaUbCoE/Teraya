@@ -3,9 +3,7 @@ package com.example.game.teraya
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -17,14 +15,9 @@ class Board @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : RelativeLayout(context, attrs, defStyleAttr), View.OnClickListener {
-    private val TAG = Board::class.java.simpleName
     private val mGridArray: MutableList<List<Grid>> = ArrayList()
     private lateinit var mCellArray: MutableList<List<TextView>>
     private lateinit var mCurrentCell: TextView
-    private val mLightTextColor = "#ffffff"
-    private val mDefaultTextColor = "#000000"
-    private val mDefaultBgColor = "#ffffff"
-    private val mDisableTextColor = "#e2e2e2"
     private var mGameOverCallBack: GameOverCallBack? = null
     private var inputRow = -1
     private var inputColumn = -1
@@ -34,9 +27,9 @@ class Board @JvmOverloads constructor(
     }
 
     private fun init(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {
-        val padding = DensityUtils.dp2px(context, 1f)
+        val padding = 1.dp
         setPadding(padding, padding, padding, padding)
-        setBackgroundColor(Color.BLACK)
+        setBackgroundColor(context.getColor(R.color.bw))
         for (i in 0..2) {
             val gridList: MutableList<Grid> = ArrayList()
             for (j in 0..2) {
@@ -54,12 +47,12 @@ class Board @JvmOverloads constructor(
 
                             1 -> {
                                 params.addRule(BELOW, mGridArray[0][0].id)
-                                params.topMargin = DensityUtils.dp2px(context, 1f)
+                                params.topMargin = 1.dp
                             }
 
                             else -> {
                                 params.addRule(BELOW, mGridArray[1][0].id)
-                                params.topMargin = DensityUtils.dp2px(context, 1f)
+                                params.topMargin = 1.dp
                             }
                         }
                     }
@@ -67,13 +60,13 @@ class Board @JvmOverloads constructor(
                     1 -> {
                         params.addRule(RIGHT_OF, gridList[j - 1].id)
                         params.addRule(ALIGN_TOP, gridList[j - 1].id)
-                        params.leftMargin = DensityUtils.dp2px(context, 1f)
+                        params.leftMargin = 1.dp
                     }
 
                     else -> {
                         params.addRule(RIGHT_OF, gridList[j - 1].id)
                         params.addRule(ALIGN_TOP, gridList[j - 1].id)
-                        params.leftMargin = DensityUtils.dp2px(context, 1f)
+                        params.leftMargin = 1.dp
                     }
                 }
                 gridList.add(grid)
@@ -93,8 +86,8 @@ class Board @JvmOverloads constructor(
                 cell.setTag(R.id.column, j)
                 cell.setTag(R.id.isEnable, true)
                 cell.setTag(R.id.teraya, " ")
-                cell.setTextColor(Color.parseColor(mDefaultTextColor))
-                cell.setBackgroundColor(Color.parseColor(mDefaultBgColor))
+                cell.setTextColor(context.getColor(R.color.bw))
+                cell.setBackgroundColor(context.getColor(R.color.wb))
                 cell.setOnClickListener(this)
                 cellArray.add(j, cell)
             }
@@ -155,7 +148,7 @@ class Board @JvmOverloads constructor(
         for (i in 0..8) {
             for (j in 0..8) {
                 if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean))
-                    mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
+                    mCellArray[i][j].setBackgroundColor(context.getColor(R.color.wb))
                 if (i in rowStart..rowStart + 2 && j in columnStart..columnStart + 2) { // 当前区域
                     mCellArray[i][j].foreground = null
                     mCellArray[i][j].setTag(R.id.isEnable, true)
@@ -176,7 +169,7 @@ class Board @JvmOverloads constructor(
             && !(mCellArray[inputRow][inputColumn].getTag(R.id.isFinish) as Boolean)
         ) {
             mCellArray[inputRow][inputColumn]
-                .setBackgroundColor(Color.parseColor(mLightTextColor))
+                .setBackgroundColor(context.getColor(R.color.wb))
             mCellArray[inputRow][inputColumn].text = str
             mCellArray[inputRow][inputColumn].paint.isFakeBoldText = true
             mCellArray[inputRow][inputColumn].setTextColor(
@@ -233,8 +226,7 @@ class Board @JvmOverloads constructor(
                 cell.setTag(R.id.isDone, false)
                 cell.setTag(R.id.isFinish, false)
                 cell.setTag(R.id.teraya, " ")
-                cell.setTextColor(Color.parseColor(mDisableTextColor))
-                cell.setBackgroundColor(Color.WHITE)
+                cell.setBackgroundColor(context.getColor(R.color.wb))
                 cell.foreground = null
             }
         }
@@ -270,96 +262,13 @@ class Board @JvmOverloads constructor(
                         setBackgroundColor(
                             if (isFinish == "X" && this.text.toString() == "X") Color.RED
                             else if (isFinish == "O" && this.text.toString() == "O") Color.BLUE
-                            else Color.WHITE // TO DO
+                            else context.getColor(R.color.wb)
                         )
                     }
                 }
             }
         }
-        Log.d("dfgdfgdfgdddd", "isFinish: $isFinish")
         return !(isFinish != "X" && isFinish != "O")
-    }
-
-    private fun checkGameError(row: Int, column: Int): Boolean {
-        var result: Boolean
-        result = checkSection(row, column)
-        if (result) return result
-        //check row
-        for (i in 0..8) {
-            val value = mCellArray[i][column].text.toString()
-            if (TextUtils.isEmpty(value)) continue
-            for (j in i..8) {
-                if (i == j) continue
-                if (value == mCellArray[j][column].text.toString()) {
-                    Log.d(
-                        TAG,
-                        String.format(
-                            "row error,value:%1\$s in row:%2\$d and column:%3\$d",
-                            value,
-                            row,
-                            column
-                        )
-                    )
-                    result = true
-                    break
-                }
-            }
-        }
-        if (result) return result
-
-        //check column
-        for (i in 0..8) {
-            val value = mCellArray[row][i].text.toString()
-            if (TextUtils.isEmpty(value)) continue
-            for (j in i..8) {
-                if (i == j) continue
-                if (value == mCellArray[row][j].text.toString()) {
-                    Log.d(
-                        TAG,
-                        String.format(
-                            "column error,value:%1\$s in row:%2\$d and column:%3\$d",
-                            value,
-                            row,
-                            column
-                        )
-                    )
-                    result = true
-                    break
-                }
-            }
-        }
-        return result
-    }
-
-    private fun checkSection(row: Int, column: Int): Boolean {
-        var result = false
-        val value = mCellArray[row][column].text.toString()
-        if (TextUtils.isEmpty(value)) {
-            return result
-        }
-        val start_i = if (row < 3) 0 else if (row < 6) 3 else 6 //3x3 格子的边界
-        val start_j = if (column < 3) 0 else if (column < 6) 3 else 6
-        val end_i = start_i + 3
-        val end_j = start_j + 3
-        for (i in start_i until end_i) {
-            for (j in start_j until end_j) {
-                if (i == row && j == column) continue
-                if (value == mCellArray[i][j].text.toString()) { //如果3x3格子的内容有重复的数字则返回错误
-                    Log.d(
-                        TAG,
-                        String.format(
-                            "section error,value:%1\$s in row:%2\$d and column:%3\$d",
-                            value,
-                            row,
-                            column
-                        )
-                    )
-                    result = true
-                    break
-                }
-            }
-        }
-        return result
     }
 
     @SuppressLint("RestrictedApi", "UseCompatLoadingForDrawables")
@@ -387,7 +296,7 @@ class Board @JvmOverloads constructor(
         for (i in 0..8) {
             for (j in 0..8) {
                 if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean))
-                    mCellArray[i][j].setBackgroundColor(Color.parseColor(mLightTextColor))
+                    mCellArray[i][j].setBackgroundColor(context.getColor(R.color.wb))
                 if (i in rowStart..rowStart + 2 && j in columnStart..columnStart + 2) {// 下一步的区域
                     if (!(mCellArray[i][j].getTag(R.id.isFinish) as Boolean)) {
                         mCellArray[i][j].foreground =
